@@ -11,18 +11,39 @@ beforeEach(async () => {
 
     const blogObjs = helper.initialBlogs.map(b => new Blog(b))
     const promiseArray = blogObjs.map(b => b.save())
-    
+
     await Promise.all(promiseArray)
 })
 
+test('a blog can be modified', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToMod = {
+        title: "RandomModdedBlog",
+        author: "Freya",
+        url: "Ragnarok.com",
+        likes: 11,
+    }
+
+    await api
+        .put(`/api/blogs/${blogsAtStart[0].id}`)
+        .send(blogToMod)
+        .expect(201)
+
+    const response = await api.get('/api/blogs')
+    const contents = response.body.map(r => r.title)
+
+    expect(contents).toContain(blogToMod.title)
+})
+
+
 test('a specific blog is within the returned blogs', async () => {
     const response = await api.get('/api/blogs')
-  
+
     const contents = response.body.map(r => r.title)
     expect(contents).toContain(
-      'TestBlog'
+        'TestBlog'
     )
-  })
+})
 
 test('a valid blog can be added ', async () => {
     const newBlog = {
@@ -90,28 +111,29 @@ test('blogs are returned as json', async () => {
 
 test('all blogs are returned', async () => {
     const response = await api.get('/api/blogs')
-  
-    expect(response.body).toHaveLength(helper.initialBlogs.length)
-  })
 
-  test('a blog can be deleted', async () => {
+    expect(response.body).toHaveLength(helper.initialBlogs.length)
+})
+
+
+test('a blog can be deleted', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
-  
+
     await api
-      .delete(`/api/blogs/${blogToDelete.id}`)
-      .expect(204)
-  
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .expect(204)
+
     const blogsAtEnd = await helper.blogsInDb()
-  
+
     expect(blogsAtEnd).toHaveLength(
-      helper.initialBlogs.length - 1
+        helper.initialBlogs.length - 1
     )
-  
+
     const contents = blogsAtEnd.map(r => r.title)
-  
+
     expect(contents).not.toContain(blogToDelete.title)
-  })
+})
 
 afterAll(() => {
     mongoose.connection.close()
