@@ -1,0 +1,28 @@
+const express = require('express')
+const app = express()
+const cors = require('cors')
+const mongoose = require('mongoose')
+const logger = require('./utils/logger')
+require('express-async-errors')
+const {PORT, MONGODB_URI} = require('./utils/config')
+const blog = require('./controllers/router')
+const middleware = require('./utils/middleware')
+
+const morgan = require('morgan')
+
+mongoose.connect(MONGODB_URI)
+.then(() => {logger.info('Connected')})
+.catch((error) => {logger.error('Error:', error.message)})
+
+morgan.token('body', (req) => JSON.stringify(req.body))
+
+app.use(cors())
+app.use(express.static('build'))
+app.use(express.json())
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
+
+app.use('/api/blogs', blog)
+
+app.use(middleware.errorHandler)
+
+module.exports = app
