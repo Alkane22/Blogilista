@@ -3,7 +3,8 @@ const mongoose = require('mongoose')
 const blogSchema = mongoose.Schema({
     title: {
         type: String,
-        required: true
+        required: true,
+        minlength: 3
     },
     author: {
         type: String,
@@ -16,6 +17,10 @@ const blogSchema = mongoose.Schema({
     likes: {
         type: Number,
         required: true
+    },
+    user: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
     }
 })
 

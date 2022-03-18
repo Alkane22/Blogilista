@@ -1,0 +1,11 @@
+post http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6Im1sdXVra2FpIiwiaWQiOiI2MjM0NmM4OTc3ZDBmZTUxZTAwYmRiZTAiLCJpYXQiOjE2NDc2MDg2NDgsImV4cCI6MTY0NzYxMjI0OH0.lmMICdr9-bkvTh1-mMF6f2C1QATvqwnGAcbxsxc01PQ
+
+{
+    "title": "BadBlog2",
+    "author": "Omppu",
+    "url": "jotkut.fi",
+    "likes": 81,
+    "userId": "62346c8977d0fe51e00bdbe0"
+}
