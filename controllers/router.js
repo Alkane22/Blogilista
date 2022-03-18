@@ -15,17 +15,7 @@ bRouter.get('/', async (request, response) => {
 bRouter.post('/', userExtractor, async (req, res) => {
     const body = req.body
     const user = await User.findById(req.user.id)
-    /*
-    const decodeToken = jwt.verify(req.token, process.env.SECRET)
-    if (!req.token || !decodeToken.id) {
-        return res.status(401).json({
-            error: 'token missing or invalid'
-        })
-    }
 
-    console.log(req.user)
-    const user = await User.findById(decodeToken.id)
-    */
     const newBlog = new blog({
         title: body.title,
         author: body.author,
@@ -42,17 +32,20 @@ bRouter.post('/', userExtractor, async (req, res) => {
     res.status(201).json(savedBlog)
 })
 
-bRouter.delete('/:id', async (req, res) => {
+bRouter.delete('/:id', userExtractor,async (req, res) => {
+    /*
     const decodeToken = jwt.verify(req.token, process.env.SECRET)
     if (!req.token || !decodeToken.id) {
         return res.status(401).json({
             error: 'token missing or invalid'
         })
     }
+    */
 
     const blogObj = await blog.findById(req.params.id)
 
-    if (blogObj.user.toString() === decodeToken.id.toString()) {
+    //if (blogObj.user.toString() === decodeToken.id.toString()) {
+    if (blogObj.user.toString() === req.user.id) {
         await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
         res.status(204).end()
     } else {
