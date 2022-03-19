@@ -32,7 +32,7 @@ bRouter.post('/', userExtractor, async (req, res) => {
     res.status(201).json(savedBlog)
 })
 
-bRouter.delete('/:id', userExtractor,async (req, res) => {
+bRouter.delete('/:id', userExtractor, async (req, res) => {
     /*
     const decodeToken = jwt.verify(req.token, process.env.SECRET)
     if (!req.token || !decodeToken.id) {
@@ -43,15 +43,21 @@ bRouter.delete('/:id', userExtractor,async (req, res) => {
     */
 
     const blogObj = await blog.findById(req.params.id)
-
     //if (blogObj.user.toString() === decodeToken.id.toString()) {
-    if (blogObj.user.toString() === req.user.id) {
-        await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
-        res.status(204).end()
-    } else {
-        resizeTo.status(401).json({
-            error: 'missing rights for delete'
-        })
+    try {
+        if (blogObj.user.toString() === req.user.id) {
+            await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
+            res.status(204).end()
+        } else {
+            res.status(401).json({
+                error: 'missing rights for delete'
+            })
+        }
+    } catch (e) {
+        if(typeof blogObj.user === 'undefined'){
+            await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
+            res.status(204).end()
+        }
     }
 })
 

@@ -12,7 +12,8 @@ const initialBlogs = [
         title: "RandomBlog",
         author: "John",
         url: "wtf.io",
-        likes: 8
+        likes: 8,
+        user: '62346a969b903a0f442f968b'
     },
 ]
 

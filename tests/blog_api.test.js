@@ -6,6 +6,30 @@ const api = supertest(app)
 
 const Blog = require('../models/blogs')
 
+let token = ''
+let username = ''
+let userId = ''
+
+test('can login with predefined account', async () => {
+    const userObj = {
+        username: 'mluukkai',
+        password: 'salainen'
+    }
+
+    const response  = await api
+        .post('/api/login/')
+        .send(userObj)
+        .expect(200)
+        .expect('Content-Type', /application\/json/)
+
+    expect(response.body.username).toEqual(userObj.username)
+
+    token = response.body.token
+    username = response.body.username
+    userId = response.body.id
+})
+
+
 beforeEach(async () => {
     await Blog.deleteMany({})
 
@@ -50,11 +74,13 @@ test('a valid blog can be added ', async () => {
         title: "ThemBlogs",
         author: "Maria",
         url: "Shady.gov",
+        user: userId,
         likes: 9
     }
 
     await api
         .post('/api/blogs')
+        .set('Authorization', 'bearer ' + token)
         .send(newBlog)
         .expect(201)
         .expect('Content-Type', /application\/json/)
@@ -73,11 +99,13 @@ test('blog without likes works', async () => {
     const newblog = {
         title: "NobodyLikesMe",
         author: "Sadman",
-        url: "Verysadge.io"
+        url: "Verysadge.io",
+        user: userId
     }
 
     await api
         .post('/api/blogs')
+        .set('Authorization', 'bearer ' + token)
         .send(newblog)
         .expect(201)
 
@@ -94,6 +122,7 @@ test('blog without content is not added', async () => {
 
     await api
         .post('/api/blogs')
+        .set('Authorization', 'bearer ' + token)
         .send(newblog)
         .expect(400)
 
@@ -116,12 +145,13 @@ test('all blogs are returned', async () => {
 })
 
 
-test('a blog can be deleted', async () => {
+test('a blog without user can be deleted', async () => {
     const blogsAtStart = await helper.blogsInDb()
     const blogToDelete = blogsAtStart[0]
 
     await api
         .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', 'bearer ' + token)
         .expect(204)
 
     const blogsAtEnd = await helper.blogsInDb()
@@ -133,6 +163,26 @@ test('a blog can be deleted', async () => {
     const contents = blogsAtEnd.map(r => r.title)
 
     expect(contents).not.toContain(blogToDelete.title)
+})
+
+test('trying to delete blog without permission is denied', async () => {
+    const blogsAtStart = await helper.blogsInDb()
+    const blogToDelete = blogsAtStart[1]
+
+    await api
+        .delete(`/api/blogs/${blogToDelete.id}`)
+        .set('Authorization', 'bearer ' + token)
+        .expect(401)
+
+    const blogsAtEnd = await helper.blogsInDb()
+
+    expect(blogsAtEnd).toHaveLength(
+        helper.initialBlogs.length 
+    )
+
+    const contents = blogsAtEnd.map(r => r.title)
+
+    expect(contents).toContain(blogToDelete.title)
 })
 
 afterAll(() => {
