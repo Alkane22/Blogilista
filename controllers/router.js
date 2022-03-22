@@ -14,6 +14,7 @@ bRouter.get('/', async (request, response) => {
 
 bRouter.post('/', userExtractor, async (req, res) => {
     const body = req.body
+    console.log(req.token)
     const user = await User.findById(req.user.id)
 
     const newBlog = new blog({
@@ -33,17 +34,8 @@ bRouter.post('/', userExtractor, async (req, res) => {
 })
 
 bRouter.delete('/:id', userExtractor, async (req, res) => {
-    /*
-    const decodeToken = jwt.verify(req.token, process.env.SECRET)
-    if (!req.token || !decodeToken.id) {
-        return res.status(401).json({
-            error: 'token missing or invalid'
-        })
-    }
-    */
-
     const blogObj = await blog.findById(req.params.id)
-    //if (blogObj.user.toString() === decodeToken.id.toString()) {
+
     try {
         if (blogObj.user.toString() === req.user.id) {
             await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
@@ -54,7 +46,7 @@ bRouter.delete('/:id', userExtractor, async (req, res) => {
             })
         }
     } catch (e) {
-        if(typeof blogObj.user === 'undefined'){
+        if (typeof blogObj.user === 'undefined') {
             await blog.deleteOne({ '_id': mongoose.Types.ObjectId(req.params.id) })
             res.status(204).end()
         }
@@ -69,7 +61,7 @@ bRouter.get('/:id', async (req, res) => {
         res.status(404).end()
     }
 })
-
+/*
 bRouter.put('/:id', async (req, res) => {
     const { title, author, url, likes } = req.body
 
@@ -81,4 +73,25 @@ bRouter.put('/:id', async (req, res) => {
 
     res.status(201).json(upBlog)
 })
+*/
+
+bRouter.put('/:id', async (req, res) => {
+    const reqBlog = await blog.findById(req.params.id)
+
+
+    const upBlog = await blog.findByIdAndUpdate(
+        { _id: reqBlog.id },
+        {
+            title: reqBlog.title,
+            author: reqBlog.author,
+            url: reqBlog.url,
+            likes: reqBlog.likes + 1,
+            user: reqBlog.user
+        }
+    )
+
+
+    res.status(201).json(upBlog)
+})
+
 module.exports = bRouter

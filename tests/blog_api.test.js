@@ -10,13 +10,29 @@ let token = ''
 let username = ''
 let userId = ''
 
+test('cant add blog without token', async () => {
+    const newBlog = {
+        title: "NoToken",
+        author: "Nobody",
+        url: "Missing.io",
+        user: userId,
+        likes: 10
+    }
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(401)
+        .expect('Content-Type', /application\/json/)
+})
+
 test('can login with predefined account', async () => {
     const userObj = {
         username: 'mluukkai',
         password: 'salainen'
     }
 
-    const response  = await api
+    const response = await api
         .post('/api/login/')
         .send(userObj)
         .expect(200)
@@ -177,7 +193,7 @@ test('trying to delete blog without permission is denied', async () => {
     const blogsAtEnd = await helper.blogsInDb()
 
     expect(blogsAtEnd).toHaveLength(
-        helper.initialBlogs.length 
+        helper.initialBlogs.length
     )
 
     const contents = blogsAtEnd.map(r => r.title)
